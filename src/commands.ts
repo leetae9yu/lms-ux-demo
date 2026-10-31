@@ -67,10 +67,10 @@ export function interpret(raw: string, snap: Snapshot): Outcome {
     const lect = has(s, "과제", "숙제", "제출")
       ? []
       : lectures.filter((l) => inCourse(l.courseId) && !snap.watched.has(l.id) && inRange(l.until));
-    const parts = [due.length && `과제 ${due.length}건`, lect.length && `강의 기한 ${lect.length}건`].filter(Boolean).join(", ");
+    const total = due.length + lect.length;
     return {
       kind: "deadlines",
-      title: parts ? `${range.label} ${scope}마감: ${parts}` : `${range.label} ${scope}마감이 없어요`,
+      title: total ? `${range.label} ${scope}마감 ${total}개` : `${range.label} ${scope}마감이 없어요`,
       assignments: due,
       lectures: lect,
     };

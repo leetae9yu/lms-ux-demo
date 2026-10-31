@@ -116,7 +116,7 @@ export function Panel() {
         key: "files",
         icon: Download,
         text: `이 화면에 새 자료 ${newFiles.length}개`,
-        sub: newFiles.map((f) => f.name).join(", "),
+        sub: newFiles.map((f) => f.name).join("\n"),
         label: `${newFiles.length}개 받기`,
         done: allTaken(newFiles),
         doneLabel: "받았어요",

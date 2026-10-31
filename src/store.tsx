@@ -17,6 +17,7 @@ interface Store {
   reminders: Set<string>;
   downloaded: Set<string>;
   jobs: Job[];
+  trayHidden: boolean;
   theme: Theme;
   toast: { id: number; text: string; note?: string } | null;
   setTheme: (t: Theme) => void;
@@ -47,6 +48,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [opened, setOpened] = useState(() => new Set<string>());
   const [reminders, setReminders] = useState(() => new Set<string>());
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [trayHidden, setTrayHidden] = useState(false);
   const [theme, setThemeState] = useState<Theme>(readTheme);
   const [toast, setToast] = useState<Store["toast"]>(null);
   const toastSeq = useRef(0);
@@ -128,6 +130,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const download = useCallback((list: FileItem[]) => {
     let added = 0;
+    if (list.length) setTrayHidden(false);
     setJobs((prev) => {
       const taken = new Set(prev.filter((j) => j.state !== "canceled").map((j) => j.file.id));
       const fresh = list.filter((f) => !taken.has(f.id));
@@ -142,9 +145,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setJobs((prev) => prev.map((j) => (j.state === "queued" || j.state === "active" ? { ...j, state: "canceled" } : j)));
   }, []);
 
-  const clearDownloads = useCallback(() => {
-    setJobs((prev) => prev.filter((j) => j.state === "queued" || j.state === "active").length ? prev : []);
-  }, []);
+  // Hiding the tray keeps the job history: finished files stay "downloaded".
+  const clearDownloads = useCallback(() => setTrayHidden(true), []);
 
   const value: Store = {
     watched,
@@ -153,6 +155,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     reminders,
     downloaded,
     jobs,
+    trayHidden,
     theme,
     toast,
     setTheme: setThemeState,

@@ -151,6 +151,7 @@ button {
 
 .hero-title {
   margin: 0;
+  text-wrap: balance;
   font-size: var(--text-hero);
   font-weight: var(--weight-bold);
   line-height: 1.38;
@@ -159,6 +160,8 @@ button {
 
 .hero-sub {
   margin: var(--space-3) 0 0;
+  white-space: pre-line;
+  text-wrap: pretty;
   font-size: var(--text-lg);
   color: var(--text-2);
 }
@@ -912,12 +915,14 @@ button {
 
 .side-main {
   margin: 0;
+  text-wrap: balance;
   font-weight: var(--weight-semibold);
   line-height: var(--leading-tight);
 }
 
 .side-sub {
   margin: var(--space-1) 0 0;
+  white-space: pre-line;
   font-size: var(--text-sm);
   color: var(--text-2);
   overflow-wrap: anywhere;

@@ -5,19 +5,19 @@ import { useStore } from "../store";
 const CLOSE_AFTER_MS = 2500;
 
 export function DownloadTray() {
-  const { jobs, cancelDownloads, clearDownloads } = useStore();
+  const { jobs, trayHidden, cancelDownloads, clearDownloads } = useStore();
   const live = jobs.filter((j) => j.state !== "canceled");
   const done = live.filter((j) => j.state === "done").length;
   const running = done < live.length;
 
   // A finished batch closes itself; the result already shows where the student is looking.
   useEffect(() => {
-    if (running || live.length === 0) return;
+    if (running || live.length === 0 || trayHidden) return;
     const t = window.setTimeout(clearDownloads, CLOSE_AFTER_MS);
     return () => window.clearTimeout(t);
-  }, [running, live.length, clearDownloads]);
+  }, [running, live.length, trayHidden, clearDownloads]);
 
-  if (live.length === 0) return null;
+  if (live.length === 0 || trayHidden) return null;
   const total = live.reduce((sum, j) => sum + j.file.sizeMB, 0);
   const got = live.reduce((sum, j) => sum + j.file.sizeMB * j.progress, 0);
   const pct = Math.round((got / total) * 100);
