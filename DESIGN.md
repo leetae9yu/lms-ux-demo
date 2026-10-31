@@ -8,7 +8,7 @@
 
 ## 1. Product
 
-LMS helper for one student. The app links out to the school LMS; it never submits or writes. Every frequent task finishes in one or two clicks or one sentence.
+LMS helper for one student. Principle (operator, Toss-style): remove login, menus, course picking from the student's head. Open the app and the next thing to do is already there. One screen holds one thing: one big sentence and one big button. Plain words, not school terms. Finishing shows a check and 「끝」, then the next task arrives on its own. Anything else is one sentence away. The app links out to the school LMS; it never submits or writes. Phone width is the primary design; desktop shows the same narrow column centred.
 
 ## 2. Colour roles
 
@@ -20,25 +20,26 @@ Pretendard Variable, bundled. Desktop 12/13/14/16/20/26 px; phone 13/15/17/19/28
 
 ## 4. Layout
 
-- Layout: fixed-sidenav-shell. Sidebar (232 px) fixed; `.main` is the single vertical scroll owner; `.topbar` (command bar) is sticky inside it. Anti-patterns: whole-document scroll, a second scroller beside main.
-- Phone (< 768 px): sidebar hidden, bottom tab bar (오늘, 과목, 일정, 설정) in the grid's second row; `.main` still owns scroll. The suggestion chips row is a horizontal reel.
-- Today and course pages: intrinsic grid of sections, `repeat(auto-fit, minmax(min(26rem, 100%), 1fr))`.
-- Schedule: 7-column week grid at >= 1024 px, one row per day below that.
-- The command panel is the one nested scroller (its own results).
+- Layout: scroll-body-shell. A slim app bar (date or back link, two icon links) is fixed in the grid's first row; `.main` is the single vertical scroll owner. Inside it, `.stage` is a centred column (max 460 px) whose body grows to fill the viewport; `.stage-actions` (the big button) is sticky to the bottom of the stage. Anti-patterns: card grids, sidebars, tab bars, a second page scroller.
+- LMS side panel (`#/panel`): list-detail split. Desktop: fake LMS page (1fr) and panel (400 px), each its own scroll owner, `.main` does not scroll. Phone: LMS on top (42%), panel below, each scrolls.
 
 ## 5. Screens and primitives
 
-Primitives: btn (primary, secondary, quiet, row, sm), icon-btn, chip, section (head + count + list), row (title, meta, one action), course-tag, segmented, switch, input, tray, toast.
+Primitives: btn (lg primary, lg ghost, lg tonal, row, side, secondary, quiet), icon-btn, course-chip, hero-title, hero-sub, ask-entry, say (suggestion row), summary-list, steps, done-mark, row, timeline, tray, toast, segmented, switch, input.
 
-- Today. Primary action: the command bar. Priorities: 1 deadlines within 7 days, 2 unwatched lectures, 3 new notices and new files. Left out: stat tiles, greeting copy, per-section subtitles, submit buttons.
-- Command panel. Primary: Enter on the sentence. Shows a result card, then suggestion sentences.
-- Course. Primary: 「자료 N개 모두 받기」. Then assignments, lectures, files, notices.
-- Schedule. Primary: none beyond the items; week navigation is secondary.
+- Home / one-shot intro. Primary: 「한 번에 끝내기」. Priorities: how many tasks today, how many the app can finish alone, which ones. Secondary: 「하나씩 할게요」.
+- Home / task. Primary: the task's action (과제 페이지 열기, 강의 틀기, N개 받기, 다 읽었어요, 알림 켜기). Priorities: course, plain-language sentence with the deadline, detail line. Secondary: 「나중에 할게요」, pager arrows, ask entry.
+- Home / batch run. Steps finish in order with one result line each; ends with 「끝」 and 「남은 일 N개 하기」.
+- Home / done. Check mark, 「끝」, the result line; auto-advances after 1.1 s.
+- Home / all done. 「오늘 할 거 다 했어요」.
+- Ask. Big input, suggestion rows. Result: big title, the list (timeline, course, course list, summary), one big next-step button.
+- Panel. Primary per item: the item's one action. Left out: submit and write buttons.
 - Settings. Theme first, then account, sentence-command key, downloads, notifications. Nothing is saved.
+- Left out on purpose: dashboard card grid, stat tiles, sidebar, tab bar, course/schedule screens as places to browse.
 
 ## 6. Motion
 
-Only for arrivals (panel, tray, toast: 200 ms rise) and progress. Reduced motion turns them into fades.
+Only for arrivals (stage body, tray, toast: 200 ms rise), the finish check (360 ms pop), the batch spinner, and progress. Reduced motion turns rise and pop into fades.
 
 ## 7. Surfaces
 
