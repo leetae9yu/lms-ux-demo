@@ -62,7 +62,7 @@ export function useTasks(): Task[] {
         id: `l-${l.id}`,
         kind: "lecture",
         courseId: l.courseId,
-        headline: `${c.name} 강의, ${humanTime(l.until).replace(" 자정 전", "")}까지 봐야 출석 인정돼요`,
+        headline: `${c.name} 강의, ${humanTime(l.until).replace(/\s자정\s전$/, "")}까지 봐야 출석 인정돼요`,
         detail: `${l.title} · ${l.minutes}분`,
         action: "강의 틀기",
         icon: Play,

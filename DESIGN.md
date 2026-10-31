@@ -16,7 +16,7 @@ All in `src/styles/tokens.css`, light and dark: bg, bg-sidebar, bg-hover, bg-was
 
 ## 3. Type and spacing
 
-Pretendard Variable, bundled. Desktop 12/13/14/16/20/26 px; phone 13/15/17/19/28 px. Spacing 4-48 px scale. Radius 6/8/12/pill.
+Pretendard Variable, bundled. Desktop 12/13/14/16/20/26 px; phone 13/15/17/19/28 px. Hero sentence (--text-hero): 28 px desktop, 27 px phone; big buttons 56 px tall. Spacing 4-48 px scale. Radius 6/8/12/pill.
 
 ## 4. Layout
 

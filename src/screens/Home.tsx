@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowLeft, ArrowUp, Check, LoaderCircle, Search, Sparkles } from "lucide-react";
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type TouchEvent } from "react";
 import type { Outcome } from "../commands";
 import { CommandInput, useRunner } from "../components/CommandInput";
 import { ResultCard, Summary } from "../components/ResultCard";
@@ -50,10 +50,12 @@ export function Home() {
   const started = useRef(new Set<string>());
   const touchY = useRef<number | null>(null);
 
+  const wasCanceled = (fileId: string) => !jobFor(jobs, fileId) && jobs.some((j) => j.file.id === fileId && j.state === "canceled");
   const auto = tasks.filter((t) => t.auto);
   const showIntro = mode === "tasks" && !introDismissed && batch === null && auto.length >= 2;
   const index = Math.max(0, tasks.findIndex((t) => t.id === cursor));
-  const current = tasks[index];
+  // A files task leaves the list once its downloads are queued; keep it on screen until they settle.
+  const current = waiting ?? tasks[index];
 
   const move = (step: number) => {
     if (tasks.length < 2) return;
@@ -72,9 +74,13 @@ export function Home() {
     else finish(task);
   };
 
-  // A file task finishes when its downloads do.
+  // A file task finishes when its downloads do; a cancel from the tray returns it to the list.
   useEffect(() => {
-    if (waiting?.files && waiting.files.every((f) => downloaded.has(f.id))) {
+    if (!waiting?.files) return;
+    if (waiting.files.some((f) => wasCanceled(f.id))) {
+      setWaiting(null);
+      store.showToast("자료 받기를 취소했어요");
+    } else if (waiting.files.every((f) => downloaded.has(f.id))) {
       setWaiting(null);
       finish(waiting);
     }
@@ -97,7 +103,7 @@ export function Home() {
       started.current.add(t.id);
       t.run();
     }
-    const ready = t.kind !== "files" || (t.files ?? []).every((f) => downloaded.has(f.id));
+    const ready = t.kind !== "files" || (t.files ?? []).every((f) => downloaded.has(f.id) || wasCanceled(f.id));
     if (!ready) return;
     const h = window.setTimeout(() => setBatch((b) => b && { ...b, step: b.step + 1 }), t.kind === "files" ? 300 : 700);
     return () => window.clearTimeout(h);
@@ -105,6 +111,10 @@ export function Home() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && mode !== "tasks" && mode !== "batch") {
+        setMode("tasks");
+        return;
+      }
       const target = e.target as HTMLElement;
       if (target.tagName === "INPUT") return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -113,11 +123,9 @@ export function Home() {
       } else if (e.key === "/") {
         e.preventDefault();
         setMode("ask");
-      } else if (mode === "tasks" && !finishing && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+      } else if (mode === "tasks" && !finishing && !showIntro && !waiting && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
         e.preventDefault();
         move(e.key === "ArrowDown" ? 1 : -1);
-      } else if (e.key === "Escape" && mode !== "tasks") {
-        setMode("tasks");
       }
     };
     window.addEventListener("keydown", onKey);
@@ -136,14 +144,14 @@ export function Home() {
     setMode("result");
   };
 
-  const onPointerDown = (e: PointerEvent) => {
-    if (e.pointerType === "touch") touchY.current = e.clientY;
+  const onTouchStart = (e: TouchEvent) => {
+    touchY.current = e.touches[0].clientY;
   };
-  const onPointerUp = (e: PointerEvent) => {
+  const onTouchEnd = (e: TouchEvent) => {
     if (touchY.current === null) return;
-    const dy = e.clientY - touchY.current;
+    const dy = e.changedTouches[0].clientY - touchY.current;
     touchY.current = null;
-    if (Math.abs(dy) > 60 && mode === "tasks" && !finishing && !showIntro) move(dy < 0 ? 1 : -1);
+    if (Math.abs(dy) > 60 && mode === "tasks" && !finishing && !showIntro && !waiting) move(dy < 0 ? 1 : -1);
   };
 
   const back = (
@@ -190,7 +198,7 @@ export function Home() {
     screen = (
       <div className="stage-body stage-top">
         {back}
-        <ResultCard outcome={outcome} onRun={run} />
+        <ResultCard outcome={outcome} onRun={run} onBack={() => setMode("tasks")} />
         {outcome.kind === "unknown" && (
           <ul className="say-list">
             {suggestions.map((s) => (
@@ -225,7 +233,7 @@ export function Home() {
                 </span>
                 <div className="step-text">
                   <p>
-                    {state === "done" ? `${t.doneLine}. 끝` : state === "now" ? t.doing : t.headline}
+                    {state === "done" ? t.doneLine : state === "now" ? t.doing : t.headline}
                     {state === "now" && pct !== null && <span className="step-pct"> {pct}%</span>}
                   </p>
                   {state === "done" && t.summary && <Summary items={t.summary} />}
@@ -234,6 +242,22 @@ export function Home() {
             );
           })}
         </ol>
+        {!finished && (
+          <div className="stage-actions">
+            <button
+              type="button"
+              className="btn btn-lg btn-ghost"
+              onClick={() => {
+                store.cancelDownloads();
+                setBatch(null);
+                setIntroDismissed(true);
+                setMode("tasks");
+              }}
+            >
+              그만하기
+            </button>
+          </div>
+        )}
         {finished && (
           <div className="stage-actions">
             <button
@@ -256,7 +280,7 @@ export function Home() {
   } else if (showIntro) {
     screen = (
       <div className="stage-body">
-        <p className="eyebrow">오늘 할 일 {tasks.length}개</p>
+        <p className="eyebrow">지금 할 일 {tasks.length}개</p>
         <h1 className="hero-title">
           {auto.length}개는 제가 바로
           <br />
@@ -309,7 +333,7 @@ export function Home() {
       : 0;
     screen = (
       <div className="stage-body" key={current.id}>
-        <div className="pager">
+        <div className="pager" hidden={isWaiting}>
           <span className="pager-count">
             {index + 1} / {tasks.length}
           </span>
@@ -325,7 +349,7 @@ export function Home() {
         {current.detail && <p className="hero-sub">{current.detail}</p>}
         {current.summary && <Summary items={current.summary} />}
         <div className="stage-actions">
-          <button type="button" className="btn btn-lg btn-primary" disabled={isWaiting} onClick={() => act(current)}>
+          <button type="button" className={`btn btn-lg btn-primary${isWaiting ? " is-busy" : ""}`} disabled={isWaiting} onClick={() => act(current)}>
             {isWaiting ? (
               <span>받는 중 {pct}%</span>
             ) : (
@@ -335,9 +359,15 @@ export function Home() {
               </>
             )}
           </button>
-          <button type="button" className="btn btn-lg btn-ghost" disabled={tasks.length < 2 || isWaiting} onClick={() => move(1)}>
-            나중에 할게요
-          </button>
+          {isWaiting ? (
+            <button type="button" className="btn btn-lg btn-ghost" onClick={store.cancelDownloads}>
+              그만 받기
+            </button>
+          ) : (
+            <button type="button" className="btn btn-lg btn-ghost" disabled={tasks.length < 2} onClick={() => move(1)}>
+              나중에 할게요
+            </button>
+          )}
         </div>
         {askEntry}
       </div>
@@ -345,7 +375,7 @@ export function Home() {
   }
 
   return (
-    <div className="stage" onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
+    <div className="stage" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {screen}
     </div>
   );

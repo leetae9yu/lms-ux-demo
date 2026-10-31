@@ -1,4 +1,4 @@
-import { Bell, Download, ExternalLink, Play } from "lucide-react";
+import { ArrowLeft, Bell, Download, ExternalLink, Play } from "lucide-react";
 import type { Outcome } from "../commands";
 import { courseById, files, type Notice } from "../data";
 import { jobFor, useStore } from "../store";
@@ -40,6 +40,10 @@ function useNextActions(outcome: Outcome): Action[] {
         },
       });
   }
+  if (outcome.kind === "deadlines" && out.length === 0) {
+    const next = outcome.lectures.find((l) => !watched.has(l.id));
+    if (next) out.push({ label: "가장 급한 강의 틀기", icon: Play, run: () => watch(next) });
+  }
   if (outcome.kind === "lectures") {
     const next = outcome.items.find((l) => !watched.has(l.id));
     if (next) out.push({ label: `가장 급한 강의 틀기`, icon: Play, run: () => watch(next) });
@@ -65,8 +69,11 @@ function useNextActions(outcome: Outcome): Action[] {
   return out;
 }
 
-export function ResultCard({ outcome, onRun }: { outcome: Outcome; onRun: (text: string) => void }) {
+export function ResultCard({ outcome, onRun, onBack }: { outcome: Outcome; onRun: (text: string) => void; onBack?: () => void }) {
   const actions = useNextActions(outcome);
+  if (actions.length === 0 && onBack && outcome.kind !== "unknown") {
+    actions.push({ label: "할 일로 돌아가기", icon: ArrowLeft, run: onBack });
+  }
   return (
     <div className="result" aria-live="polite">
       <h1 className="hero-title">{outcome.title}</h1>

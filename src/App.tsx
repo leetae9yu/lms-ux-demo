@@ -53,7 +53,8 @@ export default function App() {
         {route.name === "panel" && <Panel />}
         {route.name === "settings" && <Settings />}
       </main>
-      <DownloadTray />
+      {/* Home shows download progress in place; the tray serves the other screens. */}
+      {route.name !== "today" && <DownloadTray />}
       <Toast />
     </div>
   );

@@ -89,7 +89,7 @@ export function humanTime(d: Date): string {
     n === 0 ? "오늘" : n === 1 ? "내일" : n === 2 ? "모레" : `${d.getMonth() + 1}월 ${d.getDate()}일 ${WEEKDAYS[d.getDay()]}요일`;
   const h = d.getHours();
   const m = d.getMinutes();
-  if (h === 23 && m === 59) return `${day} 자정 전`;
+  if (h === 23 && m === 59) return `${day} 자정\u00a0전`;
   const part = h < 12 ? "오전" : h < 18 ? "오후" : h < 21 ? "저녁" : "밤";
   const h12 = h % 12 === 0 ? 12 : h % 12;
   return `${day} ${part} ${h12}시${m ? ` ${m}분` : ""}`;

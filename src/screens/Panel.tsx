@@ -125,7 +125,7 @@ export function Panel() {
       {
         key: "lecture",
         icon: Play,
-        text: `이번 주 강의, ${humanTime(l2.until).replace(" 자정 전", "")}까지 봐야 출석 인정돼요`,
+        text: `이번 주 강의, ${humanTime(l2.until).replace(/\s자정\s전$/, "")}까지 봐야 출석 인정돼요`,
         sub: `${l2.title} · ${l2.minutes}분`,
         label: "틀기",
         done: watched.has(l2.id),
@@ -206,7 +206,7 @@ export function Panel() {
             </li>
           ))}
         </ul>
-        <p className="side-note">과제를 내거나 글을 쓰는 건 왼쪽 학교 화면에서 해요.</p>
+        <p className="side-note">과제를 내거나 글을 쓰는 건 학교 화면에서 해요.</p>
         <CommandInput
           id="panel-input"
           label="이 과목에 대해 한 문장으로 묻기"
@@ -220,7 +220,13 @@ export function Panel() {
         />
         {outcome && (
           <div className="side-result">
-            <ResultCard outcome={outcome} onRun={(t) => setOutcome(runner(t))} />
+            <ResultCard
+              outcome={outcome}
+              onRun={(t) => {
+                const r = runner(t);
+                if (r.kind !== "navigate" && r.kind !== "theme") setOutcome(r);
+              }}
+            />
           </div>
         )}
       </aside>

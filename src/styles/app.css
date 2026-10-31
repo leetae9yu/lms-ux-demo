@@ -59,9 +59,8 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  height: var(--appbar-h);
-  padding: 0 var(--space-4);
-  padding-top: env(safe-area-inset-top);
+  height: calc(var(--appbar-h) + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) var(--space-4) 0;
 }
 
 .appbar-date {
@@ -99,7 +98,6 @@ button {
   min-height: 100%;
   margin: 0 auto;
   padding: var(--space-2) var(--space-5) var(--space-6);
-  touch-action: pan-y;
 }
 
 .stage-body {
@@ -119,6 +117,10 @@ button {
   align-items: center;
   gap: var(--space-1);
   margin-bottom: var(--space-6);
+}
+
+.pager[hidden] {
+  display: none;
 }
 
 .pager-count {
@@ -174,7 +176,7 @@ button {
   flex-direction: column;
   gap: var(--space-2);
   margin-top: auto;
-  padding: var(--space-8) 0 var(--space-2);
+  padding: var(--space-8) 0 max(var(--space-2), env(safe-area-inset-bottom));
   background: linear-gradient(to bottom, transparent, var(--bg) var(--space-6));
 }
 
@@ -202,6 +204,11 @@ button {
   align-self: flex-start;
   margin: 0 0 var(--space-4) calc(-1 * var(--space-2));
   text-decoration: none;
+}
+
+.appbar .back {
+  align-self: center;
+  margin: 0;
 }
 
 .intro-list {
@@ -495,6 +502,12 @@ button {
 
 .btn:active:not(:disabled) {
   transform: scale(0.98);
+}
+
+.btn-primary.is-busy:disabled {
+  opacity: 1;
+  background: var(--accent-wash);
+  color: var(--accent);
 }
 
 .btn-lg {
@@ -935,12 +948,13 @@ button {
 .btn-side {
   flex: none;
   min-width: 5.5rem;
-  background: var(--accent-solid);
-  color: var(--on-accent);
+  background: var(--accent-wash);
+  color: var(--accent);
+  font-weight: var(--weight-semibold);
 }
 
 .btn-side:hover:not(:disabled) {
-  background: var(--accent-solid-hover);
+  filter: brightness(0.96);
 }
 
 .btn-side.is-done {
@@ -1055,6 +1069,10 @@ button {
 .input-mono {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
+}
+
+.input-mono::placeholder {
+  font-family: var(--font-sans);
 }
 
 .form-actions {
@@ -1374,7 +1392,7 @@ button {
   }
 
   .segment {
-    height: 40px;
+    height: 44px;
   }
 
   .tray {

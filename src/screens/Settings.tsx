@@ -30,7 +30,7 @@ export function Settings() {
   const { theme, setTheme, showToast } = useStore();
   const demoSave = (what: string) => (e: FormEvent) => {
     e.preventDefault();
-    showToast(`${what}을 확인했어요`, "시안이라 입력값을 저장하거나 보내지 않아요");
+    showToast(`${what} 확인했어요`, "시안이라 입력값을 저장하거나 보내지 않아요");
   };
   return (
     <div className="page page-narrow">
@@ -55,7 +55,7 @@ export function Settings() {
         </div>
       </section>
 
-      <form className="settings-group" onSubmit={demoSave("학교 계정")}>
+      <form className="settings-group" onSubmit={demoSave("학교 계정을")}>
         <h2 className="section-title">학교 계정</h2>
         <div className="field">
           <label htmlFor="sid">학번</label>
@@ -72,7 +72,7 @@ export function Settings() {
         </div>
       </form>
 
-      <form className="settings-group" onSubmit={demoSave("요약 키")}>
+      <form className="settings-group" onSubmit={demoSave("요약 키를")}>
         <h2 className="section-title">문장 명령</h2>
         <div className="field">
           <label htmlFor="apikey">요약용 API 키</label>
