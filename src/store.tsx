@@ -14,6 +14,7 @@ interface Store {
   watched: Set<string>;
   read: Set<string>;
   opened: Set<string>;
+  reminders: Set<string>;
   downloaded: Set<string>;
   jobs: Job[];
   theme: Theme;
@@ -21,6 +22,7 @@ interface Store {
   setTheme: (t: Theme) => void;
   watch: (l: Lecture) => void;
   markRead: (ids: string[]) => void;
+  remind: (ids: string[]) => void;
   openAssignment: (a: Assignment) => void;
   download: (files: FileItem[]) => number;
   cancelDownloads: () => void;
@@ -43,6 +45,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [watched, setWatched] = useState(() => new Set(lectures.filter((l) => l.watchedAtStart).map((l) => l.id)));
   const [read, setRead] = useState(() => new Set(notices.filter((n) => n.readAtStart).map((n) => n.id)));
   const [opened, setOpened] = useState(() => new Set<string>());
+  const [reminders, setReminders] = useState(() => new Set<string>());
   const [jobs, setJobs] = useState<Job[]>([]);
   const [theme, setThemeState] = useState<Theme>(readTheme);
   const [toast, setToast] = useState<Store["toast"]>(null);
@@ -107,6 +110,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const remind = useCallback((ids: string[]) => {
+    setReminders((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => next.add(id));
+      return next;
+    });
+  }, []);
+
   const openAssignment = useCallback(
     (a: Assignment) => {
       setOpened((prev) => new Set(prev).add(a.id));
@@ -139,6 +150,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     watched,
     read,
     opened,
+    reminders,
     downloaded,
     jobs,
     theme,
@@ -146,6 +158,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setTheme: setThemeState,
     watch,
     markRead,
+    remind,
     openAssignment,
     download,
     cancelDownloads,

@@ -45,6 +45,7 @@
   --text-lg: 16px;
   --text-xl: 20px;
   --text-2xl: 26px;
+  --text-hero: 28px;
   --weight-regular: 400;
   --weight-medium: 500;
   --weight-semibold: 600;
@@ -67,20 +68,22 @@
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
+  --radius-xl: 16px;
   --radius-pill: 999px;
 
   /* sizing */
   --control-h: 32px;
+  --btn-lg-h: 56px;
+  --stage-max: 460px;
+  --side-w: 400px;
   --row-min-h: 52px;
-  --sidebar-w: 232px;
-  --content-max: 1120px;
-  --tabbar-h: 56px;
-  --topbar-h: 64px;
+  --appbar-h: 56px;
 
   /* motion */
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --dur-fast: 120ms;
   --dur-base: 200ms;
+  --dur-slow: 360ms;
 }
 
 :root[data-theme="dark"] {
@@ -161,6 +164,7 @@
     --text-md: 17px;
     --text-lg: 19px;
     --text-2xl: 28px;
+    --text-hero: 27px;
     --control-h: 44px;
     --row-min-h: 60px;
   }

@@ -1,49 +1,58 @@
+import { ArrowLeft, PanelRight, Settings as SettingsIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
-import { CommandBar } from "./components/CommandBar";
 import { DownloadTray } from "./components/DownloadTray";
-import { Sidebar, TabBar } from "./components/Nav";
 import { Toast } from "./components/Toast";
-import { useRoute, type Route } from "./router";
-import { Course } from "./screens/Course";
-import { Courses } from "./screens/Courses";
-import { Schedule } from "./screens/Schedule";
+import { fullDate, today0 } from "./format";
+import { href, useRoute } from "./router";
+import { Home } from "./screens/Home";
+import { Panel } from "./screens/Panel";
 import { Settings } from "./screens/Settings";
-import { Today } from "./screens/Today";
-
-function Screen({ route }: { route: Route }) {
-  switch (route.name) {
-    case "today":
-      return <Today />;
-    case "courses":
-      return <Courses />;
-    case "course":
-      return <Course id={route.id} />;
-    case "schedule":
-      return <Schedule />;
-    case "settings":
-      return <Settings />;
-  }
-}
 
 export default function App() {
   const route = useRoute();
   const mainRef = useRef<HTMLElement>(null);
-  const key = route.name === "course" ? `course-${route.id}` : route.name;
 
   useEffect(() => {
     mainRef.current?.scrollTo({ top: 0 });
-  }, [key]);
+  }, [route.name]);
 
   return (
-    <div className="app">
-      <Sidebar route={route} />
+    <div className={`app app-${route.name}`}>
+      <header className="appbar">
+        {route.name === "today" ? (
+          <p className="appbar-date">{fullDate(today0)}</p>
+        ) : (
+          <a className="btn btn-ghost back" href={href({ name: "today" })}>
+            <ArrowLeft size={18} aria-hidden="true" />
+            <span>할 일</span>
+          </a>
+        )}
+        <nav className="appbar-nav" aria-label="다른 화면">
+          <a
+            className="icon-btn"
+            href={href({ name: "panel" })}
+            aria-label="LMS 옆 패널 시안"
+            title="LMS 옆 패널 시안"
+            aria-current={route.name === "panel" ? "page" : undefined}
+          >
+            <PanelRight size={20} aria-hidden="true" />
+          </a>
+          <a
+            className="icon-btn"
+            href={href({ name: "settings" })}
+            aria-label="설정"
+            title="설정"
+            aria-current={route.name === "settings" ? "page" : undefined}
+          >
+            <SettingsIcon size={20} aria-hidden="true" />
+          </a>
+        </nav>
+      </header>
       <main className="main" ref={mainRef}>
-        <div className="topbar">
-          <CommandBar />
-        </div>
-        <Screen key={key} route={route} />
+        {route.name === "today" && <Home />}
+        {route.name === "panel" && <Panel />}
+        {route.name === "settings" && <Settings />}
       </main>
-      <TabBar route={route} />
       <DownloadTray />
       <Toast />
     </div>

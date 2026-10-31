@@ -1,4 +1,4 @@
-import { Check, Download, ExternalLink, Play } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Download, ExternalLink, Play } from "lucide-react";
 import { useState } from "react";
 import { courseById, type Assignment, type CourseId, type FileItem, type Lecture, type Notice } from "../data";
 import { ago, dueLabel, sizeLabel, urgency } from "../format";
@@ -37,9 +37,15 @@ export function AssignmentRow({ a, showCourse = true }: { a: Assignment; showCou
           )}
         </span>
       </div>
-      <button type="button" className={`btn btn-row${isOpened ? " is-done" : ""}`} onClick={() => openAssignment(a)}>
+      <button
+        type="button"
+        className={`btn btn-row${isOpened ? " is-done" : ""}`}
+        aria-label={`${a.title} ${isOpened ? "다시 열기" : "과제 열기"}`}
+        title={isOpened ? "다시 열기" : "과제 열기"}
+        onClick={() => openAssignment(a)}
+      >
         {isOpened ? <Check size={16} aria-hidden="true" /> : <ExternalLink size={16} aria-hidden="true" />}
-        <span>{isOpened ? "열었음" : "과제 열기"}</span>
+        <span className="btn-label">{isOpened ? "열었음" : "과제 열기"}</span>
       </button>
     </li>
   );
@@ -60,9 +66,15 @@ export function LectureRow({ l, showCourse = true }: { l: Lecture; showCourse?: 
           {!seen && <span className={`due due-${urgency(l.until)}`}>출석 인정 {dueLabel(l.until)}까지</span>}
         </span>
       </div>
-      <button type="button" className={`btn btn-row${seen ? " is-done" : ""}`} onClick={() => watch(l)}>
+      <button
+        type="button"
+        className={`btn btn-row${seen ? " is-done" : ""}`}
+        aria-label={`${l.week}주차 ${l.title} ${seen ? "다시 보기" : "강의 보기"}`}
+        title={seen ? "다시 보기" : "강의 보기"}
+        onClick={() => watch(l)}
+      >
         {seen ? <Check size={16} aria-hidden="true" /> : <Play size={16} aria-hidden="true" />}
-        <span>{seen ? "봤음" : "강의 보기"}</span>
+        <span className="btn-label">{seen ? "봤음" : "강의 보기"}</span>
       </button>
     </li>
   );
@@ -89,8 +101,16 @@ export function NoticeRow({ n, showCourse = true }: { n: Notice; showCourse?: bo
         </span>
         {open && <p className="notice-body">{n.body}</p>}
       </div>
-      <button type="button" className="btn btn-row" aria-expanded={open} onClick={toggle}>
-        <span>{open ? "접기" : "읽기"}</span>
+      <button
+        type="button"
+        className="btn btn-row"
+        aria-expanded={open}
+        aria-label={`${n.title} ${open ? "접기" : "읽기"}`}
+        title={open ? "접기" : "읽기"}
+        onClick={toggle}
+      >
+        {open ? <ChevronUp size={16} aria-hidden="true" className="phone-only" /> : <ChevronDown size={16} aria-hidden="true" className="phone-only" />}
+        <span className="btn-label">{open ? "접기" : "읽기"}</span>
       </button>
     </li>
   );
@@ -114,10 +134,12 @@ export function FileRow({ f, showCourse = true }: { f: FileItem; showCourse?: bo
         type="button"
         className={`btn btn-row${state === "done" ? " is-done" : ""}`}
         disabled={state === "queued" || state === "active"}
+        aria-label={`${f.name} ${state === "done" ? "다시 받기" : "받기"}`}
+        title={state === "done" ? "다시 받기" : "받기"}
         onClick={() => download([f])}
       >
         {state === "done" ? <Check size={16} aria-hidden="true" /> : <Download size={16} aria-hidden="true" />}
-        <span>
+        <span className={state === "active" ? "btn-label btn-label-keep" : "btn-label"}>
           {state === "done" ? "받았음" : state === "active" ? `${Math.round(job!.progress * 100)}%` : state === "queued" ? "대기 중" : "받기"}
         </span>
       </button>

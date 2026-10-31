@@ -3,13 +3,15 @@ import { addDays, today0, weekStart } from "./format";
 import type { Route } from "./router";
 import type { Theme } from "./store";
 
-/* Rule-based sentence matching. No model call: each rule maps a phrase to a result card. */
+/* Rule-based sentence matching. No model call: each rule maps a phrase to a result. */
 
 export type Outcome =
-  | { kind: "deadlines"; title: string; items: Assignment[] }
+  | { kind: "deadlines"; title: string; assignments: Assignment[]; lectures: Lecture[] }
   | { kind: "lectures"; title: string; items: Lecture[] }
   | { kind: "notices"; title: string; items: Notice[] }
   | { kind: "download"; title: string; files: FileItem[] }
+  | { kind: "course"; title: string; course: Course }
+  | { kind: "courses"; title: string }
   | { kind: "navigate"; title: string; route: Route }
   | { kind: "theme"; title: string; theme: Theme }
   | { kind: "unknown"; title: string };
@@ -43,6 +45,8 @@ export function interpret(raw: string, snap: Snapshot): Outcome {
 
   if (has(s, "다크", "어둡", "어두운", "밤모드")) return { kind: "theme", title: "어두운 화면으로 바꿨어요", theme: "dark" };
   if (has(s, "라이트", "밝게", "밝은")) return { kind: "theme", title: "밝은 화면으로 바꿨어요", theme: "light" };
+  if (has(s, "패널", "옆화면")) return { kind: "navigate", title: "LMS 옆 패널 시안을 열었어요", route: { name: "panel" } };
+  if (has(s, "설정", "계정", "api", "비밀번호")) return { kind: "navigate", title: "설정을 열었어요", route: { name: "settings" } };
 
   if (has(s, "받아", "다운", "저장해", "내려받")) {
     let list = files.filter((f) => inCourse(f.courseId) && !snap.downloaded.has(f.id));
@@ -51,6 +55,24 @@ export function interpret(raw: string, snap: Snapshot): Outcome {
       kind: "download",
       title: list.length ? `${scope}자료 ${list.length}개를 받기 시작했어요` : `${scope}새로 받을 자료가 없어요`,
       files: list,
+    };
+  }
+
+  if (has(s, "마감", "과제", "숙제", "할일", "해야", "제출", "due", "일정", "캘린더", "달력", "타임라인")) {
+    const range = deadlineRange(s);
+    const inRange = (d: Date) => d >= range.from && d < range.to;
+    const due = assignments
+      .filter((a) => !a.submitted && inCourse(a.courseId) && inRange(a.due))
+      .sort((a, b) => a.due.getTime() - b.due.getTime());
+    const lect = has(s, "과제", "숙제", "제출")
+      ? []
+      : lectures.filter((l) => inCourse(l.courseId) && !snap.watched.has(l.id) && inRange(l.until));
+    const parts = [due.length && `과제 ${due.length}건`, lect.length && `강의 기한 ${lect.length}건`].filter(Boolean).join(", ");
+    return {
+      kind: "deadlines",
+      title: parts ? `${range.label} ${scope}마감: ${parts}` : `${range.label} ${scope}마감이 없어요`,
+      assignments: due,
+      lectures: lect,
     };
   }
 
@@ -76,22 +98,9 @@ export function interpret(raw: string, snap: Snapshot): Outcome {
     };
   }
 
-  if (has(s, "마감", "과제", "숙제", "할일", "해야", "제출", "due")) {
-    const range = deadlineRange(s);
-    const items = assignments
-      .filter((a) => !a.submitted && inCourse(a.courseId) && a.due >= range.from && a.due < range.to)
-      .sort((a, b) => a.due.getTime() - b.due.getTime());
-    return {
-      kind: "deadlines",
-      title: items.length ? `${range.label} ${scope}마감 ${items.length}건` : `${range.label} ${scope}마감이 없어요`,
-      items,
-    };
-  }
+  if (course) return { kind: "course", title: course.name, course };
+  if (has(s, "과목", "수업", "강좌")) return { kind: "courses", title: "이번 학기 과목 5개" };
+  if (has(s, "오늘", "홈", "처음")) return { kind: "navigate", title: "할 일 화면을 열었어요", route: { name: "today" } };
 
-  if (has(s, "일정", "캘린더", "달력", "타임라인")) return { kind: "navigate", title: "주간 일정을 열었어요", route: { name: "schedule" } };
-  if (has(s, "설정", "계정", "api", "키입력", "비밀번호")) return { kind: "navigate", title: "설정을 열었어요", route: { name: "settings" } };
-  if (course) return { kind: "navigate", title: `${course.name} 과목을 열었어요`, route: { name: "course", id: course.id } };
-  if (has(s, "오늘", "홈", "처음")) return { kind: "navigate", title: "오늘 화면을 열었어요", route: { name: "today" } };
-
-  return { kind: "unknown", title: "아직 이 문장은 이해하지 못해요. 아래 문장처럼 말해 보세요." };
+  return { kind: "unknown", title: "아직 이 문장은 이해하지 못해요. 아래 추천 문장처럼 말해 보세요." };
 }
