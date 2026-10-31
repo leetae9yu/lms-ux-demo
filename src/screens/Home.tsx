@@ -42,6 +42,7 @@ export function Home() {
   const runner = useRunner();
   const [mode, setMode] = useState<Mode>("tasks");
   const [outcome, setOutcome] = useState<Outcome | null>(null);
+  const [outcomeSeq, setOutcomeSeq] = useState(0);
   const [cursor, setCursor] = useState<string | null>(null);
   const [finishing, setFinishing] = useState<{ line: string; nextId: string | null } | null>(null);
   const [waiting, setWaiting] = useState<Task | null>(null);
@@ -99,7 +100,7 @@ export function Home() {
   }, [finishing]);
 
   // Keyboard focus follows the screen: the new screen's heading takes focus (the ask screen focuses its input).
-  const screenKey = `${mode}:${showIntro}:${finishing ? "done" : current?.id ?? "empty"}:${batch ? batch.step >= batch.items.length : ""}`;
+  const screenKey = `${mode}:${outcomeSeq}:${showIntro}:${finishing ? "done" : current?.id ?? "empty"}:${batch ? batch.step >= batch.items.length : ""}`;
   const firstScreen = useRef(true);
   useEffect(() => {
     if (firstScreen.current) {
@@ -165,6 +166,7 @@ export function Home() {
       return;
     }
     setOutcome(result);
+    setOutcomeSeq((n) => n + 1);
     setMode("result");
   };
 

@@ -75,7 +75,7 @@ export function ResultCard({ outcome, onRun, onBack }: { outcome: Outcome; onRun
     actions.push({ label: "할 일로 돌아가기", icon: ArrowLeft, run: onBack });
   }
   return (
-    <div className="result" aria-live="polite">
+    <div className="result">
       <h1 className="hero-title">{outcome.title}</h1>
       <div className="result-body">
         {outcome.kind === "deadlines" && <Timeline assignments={outcome.assignments} lectures={outcome.lectures} />}
