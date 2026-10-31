@@ -72,17 +72,18 @@ function FakeLms({ page }: { page: Page }) {
   );
 }
 
-type Item = { key: string; icon: typeof Bell; text: string; sub?: string; label: string; done: boolean; doneLabel: string; run: () => void; extra?: boolean };
+type Item = { key: string; icon: typeof Bell; text: string; sub?: string; label: string; done: boolean; busy?: boolean; doneLabel: string; run: () => void; extra?: boolean };
 
 export function Panel() {
-  const { jobs, watched, read, reminders, download, watch, markRead, remind, showToast } = useStore();
+  const { jobs, downloaded, watched, read, reminders, download, watch, markRead, remind, showToast } = useStore();
   const runner = useRunner();
   const [page, setPage] = useState<Page>("home");
   const [summarized, setSummarized] = useState(false);
   const [calendared, setCalendared] = useState(false);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
 
-  const allTaken = (list: typeof newFiles) => list.every((f) => jobFor(jobs, f.id));
+  const allDone = (list: typeof newFiles) => list.every((f) => downloaded.has(f.id));
+  const busy = (list: typeof newFiles) => !allDone(list) && list.every((f) => jobFor(jobs, f.id));
   const summarize: Item = {
     key: "sum",
     icon: Megaphone,
@@ -118,7 +119,8 @@ export function Panel() {
         text: `이 화면에 새 자료 ${newFiles.length}개`,
         sub: newFiles.map((f) => f.name).join("\n"),
         label: `${newFiles.length}개 받기`,
-        done: allTaken(newFiles),
+        done: allDone(newFiles),
+        busy: busy(newFiles),
         doneLabel: "받았어요",
         run: () => download(newFiles),
       },
@@ -143,7 +145,8 @@ export function Panel() {
         text: "과제 명세서",
         sub: spec.name,
         label: "받기",
-        done: !!jobFor(jobs, spec.id),
+        done: downloaded.has(spec.id),
+        busy: busy([spec]),
         doneLabel: "받았어요",
         run: () => download([spec]),
       },
@@ -199,9 +202,9 @@ export function Panel() {
                 {it.sub && <p className="side-sub">{it.sub}</p>}
                 {it.extra && <Summary items={[n1]} />}
               </div>
-              <button type="button" className={`btn btn-side${it.done ? " is-done" : ""}`} disabled={it.done} onClick={it.run}>
+              <button type="button" className={`btn btn-side${it.done ? " is-done" : ""}`} disabled={it.done || it.busy} onClick={it.run}>
                 {it.done && <Check size={16} aria-hidden="true" />}
-                <span>{it.done ? it.doneLabel : it.label}</span>
+                <span>{it.done ? it.doneLabel : it.busy ? "받는 중" : it.label}</span>
               </button>
             </li>
           ))}

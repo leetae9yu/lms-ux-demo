@@ -25,7 +25,7 @@ function CourseChip({ task }: { task: Task }) {
 /** A finished step: check mark, the one-line result, then the app moves on by itself. */
 function DoneScreen({ line }: { line: string }) {
   return (
-    <div className="stage-body done" role="status">
+    <div className="stage-body done">
       <span className="done-mark" aria-hidden="true">
         <Check size={40} strokeWidth={3} />
       </span>
@@ -48,6 +48,8 @@ export function Home() {
   const [introDismissed, setIntroDismissed] = useState(false);
   const [batch, setBatch] = useState<{ items: Task[]; step: number } | null>(null);
   const started = useRef(new Set<string>());
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [announce, setAnnounce] = useState("");
   const touchY = useRef<number | null>(null);
 
   const wasCanceled = (fileId: string) => !jobFor(jobs, fileId) && jobs.some((j) => j.file.id === fileId && j.state === "canceled");
@@ -66,6 +68,7 @@ export function Home() {
     const rest = tasks.filter((t) => t.id !== task.id);
     const nextId = rest.length ? rest[Math.min(index, rest.length - 1)].id : null;
     setFinishing({ line: task.doneLine, nextId });
+    setAnnounce(`끝. ${task.doneLine}`);
   };
 
   const act = (task: Task) => {
@@ -95,6 +98,26 @@ export function Home() {
     return () => window.clearTimeout(t);
   }, [finishing]);
 
+  // Keyboard focus follows the screen: the new screen's heading takes focus (the ask screen focuses its input).
+  const screenKey = `${mode}:${showIntro}:${finishing ? "done" : current?.id ?? "empty"}:${batch ? batch.step >= batch.items.length : ""}`;
+  const firstScreen = useRef(true);
+  useEffect(() => {
+    if (firstScreen.current) {
+      firstScreen.current = false;
+      return;
+    }
+    if (mode === "ask") return;
+    const heading = stageRef.current?.querySelector<HTMLElement>(".hero-title");
+    if (heading) {
+      heading.tabIndex = -1;
+      heading.focus({ preventScroll: true });
+    }
+  }, [screenKey]);
+
+  useEffect(() => {
+    if (batch && batch.step >= batch.items.length) setAnnounce("끝. 자동으로 할 수 있는 일을 모두 마쳤어요");
+  }, [batch]);
+
   // "Do everything": run each automatic task in order, one result line at a time.
   useEffect(() => {
     if (!batch || batch.step >= batch.items.length) return;
@@ -115,6 +138,7 @@ export function Home() {
         setMode("tasks");
         return;
       }
+      if (mode === "batch") return;
       const target = e.target as HTMLElement;
       if (target.tagName === "INPUT") return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -375,7 +399,10 @@ export function Home() {
   }
 
   return (
-    <div className="stage" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+    <div className="stage" ref={stageRef} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      <p className="sr-only" role="status" aria-live="polite">
+        {announce}
+      </p>
       {screen}
     </div>
   );
